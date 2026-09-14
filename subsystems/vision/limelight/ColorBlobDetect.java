@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.util.trigDistance;
 
 public class ColorBlobDetect {
 
-    // --- Fields (must be declared here, not just used in the constructor) ---
+  
     private final Limelight3A limelight;
     private final IMUSubsystem imuSubsystem;
     private final Telemetry telemetry;
@@ -61,6 +61,8 @@ public class ColorBlobDetect {
         List<LLResultTypes.ColorResult> colorResults = latestResult.getColorResults();
         for (LLResultTypes.ColorResult cr : colorResults) {
             telemetry.addData("Color", "X: %.2f, Y: %.2f", cr.getTargetXDegrees(), cr.getTargetYDegrees());
+
+            
         }
 
         distance = trigDistance.calculateDistance(
