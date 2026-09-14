@@ -12,7 +12,7 @@ public class IMUSubsystem {
         imu.init();
     }
 
-    public double getHeading() {   // no more "static"
+    public double getHeading() { 
         return imu.getHeading();
     }
 }
