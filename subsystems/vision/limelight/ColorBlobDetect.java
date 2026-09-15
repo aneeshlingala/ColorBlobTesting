@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.subsystems.vision.limelight;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
+
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
@@ -13,6 +17,12 @@ import org.firstinspires.ftc.teamcode.constants.LimelightConstants;
 import org.firstinspires.ftc.teamcode.subsystems.hardware.imu.IMUSubsystem;
 import org.firstinspires.ftc.teamcode.util.trigDistance;
 
+import com.pedropathing.localization.PoseTracker;
+import com.pedropathing.follower.Follower;
+
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.geometry.Point;
+
 public class ColorBlobDetect {
 
   
@@ -23,6 +33,8 @@ public class ColorBlobDetect {
 
     public double distance;
     public double heading;
+
+    public Pose targetBlobPose;
 
     public ColorBlobDetect(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
@@ -59,17 +71,46 @@ public class ColorBlobDetect {
         if (!isColorTargetValid()) return;
 
         List<LLResultTypes.ColorResult> colorResults = latestResult.getColorResults();
-        for (LLResultTypes.ColorResult cr : colorResults) {
-            telemetry.addData("Color", "X: %.2f, Y: %.2f", cr.getTargetXDegrees(), cr.getTargetYDegrees());
 
-            
+        LLResultTypes.ColorResult biggest = null;
+        double biggestArea = -1;
+
+        for (LLResultTypes.ColorResult cr : colorResults) {
+            double area = cr.getTargetArea();
+
+            telemetry.addData("Color", "X: %.2f, Y: %.2f, Area: %.2f",
+                    cr.getTargetXDegrees(), cr.getTargetYDegrees(), area);
+
+            if (area > biggestArea) {
+                biggestArea = area;
+                biggest = cr;
+            }
         }
+
+        if (biggest == null) return;
 
         distance = trigDistance.calculateDistance(
                 LimelightConstants.cameraHeight - LimelightConstants.pollenTargetHeight,
-                LimelightConstants.cameraAngle + latestResult.getTy()
+                LimelightConstants.cameraAngle + biggest.getTargetYDegrees()
         );
 
         heading = imuSubsystem.getHeading();
+
+        double targetAngle = follower.getPose().getHeading() + Math.toRadians(biggest.getTargetXDegrees());
+        targetBlobPose = new Pose(
+                follower.getPose().getX() + distance * Math.cos(targetAngle),
+                follower.getPose().getY() + distance * Math.sin(targetAngle),
+                targetAngle
+
+        );
+
+        PathChain path = follower.pathBuilder()
+                .addPath(new BezierLine(follower.getPose(), targetBlobPose))
+                .setLinearHeadingInterpolation(follower.getPose().getHeading(), targetBlobPose.getHeading())
+                .build();
+
+        follower.followPath(path);
+
+        follower.followPath(path);
     }
 }
