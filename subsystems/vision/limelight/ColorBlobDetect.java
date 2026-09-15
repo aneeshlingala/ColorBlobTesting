@@ -21,7 +21,6 @@ import com.pedropathing.localization.PoseTracker;
 import com.pedropathing.follower.Follower;
 
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.geometry.Point;
 
 public class ColorBlobDetect {
 
@@ -67,8 +66,8 @@ public class ColorBlobDetect {
                 && !latestResult.getColorResults().isEmpty();
     }
 
-    public void returnPoseFromClosestColor() {
-        if (!isColorTargetValid()) return;
+    public Pose returnPoseFromClosestColor() {
+        if (!isColorTargetValid()) return null;
 
         List<LLResultTypes.ColorResult> colorResults = latestResult.getColorResults();
 
@@ -87,7 +86,7 @@ public class ColorBlobDetect {
             }
         }
 
-        if (biggest == null) return;
+        if (biggest == null) return null;
 
         distance = trigDistance.calculateDistance(
                 LimelightConstants.cameraHeight - LimelightConstants.pollenTargetHeight,
@@ -104,13 +103,7 @@ public class ColorBlobDetect {
 
         );
 
-        PathChain path = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(), targetBlobPose))
-                .setLinearHeadingInterpolation(follower.getPose().getHeading(), targetBlobPose.getHeading())
-                .build();
+        return targetBlobPose;
 
-        follower.followPath(path);
-
-        follower.followPath(path);
     }
 }
