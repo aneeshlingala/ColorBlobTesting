@@ -17,7 +17,7 @@ public class ColorBlobFollowAutoPedro extends OpMode {
 
     @Override
     public void init() {
-        ColorBlobDetect blobDetect = new ColorBlobDetect(hardwareMap, telemetry);
+        blobDetect = new ColorBlobDetect(hardwareMap, telemetry);
         blobDetect.setupLimelight();
     }
 
